@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/patrickmn/go-cache"
-	"github.com/boltdb/bolt"
 	"time"
+
+	"github.com/boltdb/bolt"
+	"github.com/patrickmn/go-cache"
 )
 
 const bucketName = "videos"
@@ -18,7 +19,7 @@ func initDBConnection() {
 	sqlDB = db
 }
 
-func initDB()  {
+func initDB() {
 	sqlDB.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 		checkErrAndExit(err)
@@ -43,18 +44,17 @@ func isVideoExist(videoID string) bool {
 }
 
 func isVideoExistInDB(videoID string) bool {
-	isExists := false
+	isExists := true
 	sqlDB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		v := b.Get([]byte(videoID))
-		if v == []byte("1") {
-			isExists = true
+		if v == nil {
+			isExists = false
 		}
 		return nil
 	})
 	return isExists
 }
-
 
 func addToReadyList(videoID string) {
 	addToCache(videoID)
