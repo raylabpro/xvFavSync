@@ -40,7 +40,6 @@ notifications:
 before_install:
 
 install:
- - cat /home/travis/build.sh
  - go get -t ./...
  - go get -u github.com/stretchr/testify/assert
  - go get -u github.com/golang/lint/golint
