@@ -23,9 +23,8 @@ func processAuth() {
 		"log":      {""},
 	}
 	resp, err := httpClient.PostForm(authURL, formData)
-	defer resp.Body.Close()
 	checkErrAndExit(err)
-
+	defer resp.Body.Close()
 }
 
 func processVideoDownloadByURL(url string) {
