@@ -63,7 +63,7 @@ func checkFolderExistsOrCreate() {
 
 func main() {
 	initConfigs()
-	printObject(Configs)
+	log.Println(printObject(Configs))
 	checkFolderExistsOrCreate()
 
 	initDBConnection()
@@ -99,7 +99,7 @@ func main() {
 	pbar.FinishPrint("Download finished!")
 }
 
-func printObject(v interface{}) {
+func printObject(v interface{}) string {
 	res2B, _ := json.Marshal(v)
-	log.Println(string(res2B))
+	return string(res2B)
 }
