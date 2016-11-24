@@ -1,25 +1,26 @@
 package main
 
 import (
-	"io"
-	"net/url"
-	"regexp"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
 	"encoding/json"
 	"errors"
-	"github.com/PuerkitoBio/goquery"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/url"
+	"os"
+	"regexp"
 	"strconv"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 func processAuth() {
 	formData := url.Values{
-		"login": {Configs.Login},
+		"login":    {Configs.Login},
 		"password": {Configs.Password},
-		"referer": {"http://www.xvideos.com/"},
-		"log": {""},
+		"referer":  {"http://www.xvideos.com/"},
+		"log":      {""},
 	}
 	resp, err := httpClient.PostForm(authURL, formData)
 	defer resp.Body.Close()
@@ -27,13 +28,13 @@ func processAuth() {
 
 }
 
-func processVideoDownloadByUrl(url string) {
-	downloadNodeInfoUrl, videoId, _ := getVideoURLwithNodeInfo(url)
-	if isVideoExist(videoId) == false {
-		urlFinal, _ := getVideoDirectDLURL(downloadNodeInfoUrl)
-		err := downloadFromUrl(urlFinal, videoId)
+func processVideoDownloadByURL(url string) {
+	downloadNodeInfoURL, videoID, _ := getVideoURLwithNodeInfo(url)
+	if isVideoExist(videoID) == false {
+		urlFinal, _ := getVideoDirectDLURL(downloadNodeInfoURL)
+		err := downloadFromURL(urlFinal, videoID)
 		if err == nil {
-			addToReadyList(videoId)
+			addToReadyList(videoID)
 		}
 	}
 }
@@ -47,12 +48,12 @@ func getVideoURLwithNodeInfo(url string) (string, string, error) {
 	if len(parseRes[0]) <= 0 {
 		return "", "", errors.New("Video ID Not found. Wrong URL")
 	}
-	videoId := parseRes[0][1]
-	if videoId == "" {
+	videoID := parseRes[0][1]
+	if videoID == "" {
 		return "", "", errors.New("Cant get Video ID from url")
 	}
-	resultURL := fmt.Sprintf("http://www.xvideos.com/video-download/%s/", videoId)
-	return resultURL, videoId, nil
+	resultURL := fmt.Sprintf("http://www.xvideos.com/video-download/%s/", videoID)
+	return resultURL, videoID, nil
 }
 
 func getVideoDirectDLURL(url string) (string, error) {
@@ -64,7 +65,7 @@ func getVideoDirectDLURL(url string) (string, error) {
 	}
 	defer response.Body.Close()
 
-	var jsonData DLInfo
+	var jsonData dlInfo
 	b, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(b, &jsonData)
 	if err != nil {
@@ -77,7 +78,7 @@ func getVideoDirectDLURL(url string) (string, error) {
 	return jsonData.Url, nil
 }
 
-func downloadFromUrl(url string, fileName string) error {
+func downloadFromURL(url string, fileName string) error {
 	filePath := Configs.DownloadPath + fileName + ".mp4"
 	//log.Println("Downloading", "to", filePath)
 
@@ -94,7 +95,7 @@ func downloadFromUrl(url string, fileName string) error {
 		return err
 	}
 	defer output.Close()
-	
+
 	_, err = io.Copy(output, response.Body)
 	if err != nil {
 		log.Println("Error while downloading", url, "-", err)
@@ -120,7 +121,7 @@ func getVideoListFromPlayList() ([]string, error) {
 	//log.Println("Processed main playlist page", PlayListURL, "already links in db", len(links))
 
 	counter := 0
-	for ; ; {
+	for {
 		counter = counter + 1
 		//log.Println("Processing additional", counter, "playlist page", PlayListURL + "/" + strconv.Itoa(counter))
 		videos, err := processLinksFromPage(PlayListURL + "/" + strconv.Itoa(counter))
@@ -155,9 +156,9 @@ func processLinksFromPage(url string) ([]string, error) {
 		return links, errors.New("No elements on page")
 	}
 	videoTable.Each(func(i int, s *goquery.Selection) {
-		elementUrl  := s.Text()
+		elementURL := s.Text()
 		r := regexp.MustCompile(`\/video([0-9]+)\/`)
-		parseRes := r.FindAllStringSubmatch(elementUrl, -1)
+		parseRes := r.FindAllStringSubmatch(elementURL, -1)
 		links = append(links, parseRes[0][0])
 	})
 	return links, nil

@@ -63,7 +63,7 @@ func checkFolderExistsOrCreate() {
 
 func main() {
 	initConfigs()
-	PrintObject(Configs)
+	printObject(Configs)
 	checkFolderExistsOrCreate()
 
 	initDBConnection()
@@ -92,14 +92,14 @@ func main() {
 	pbar.Start()
 
 	for i := len(videoList) - 1; i >= 0; i-- {
-		processVideoDownloadByUrl(videoList[i])
+		processVideoDownloadByURL(videoList[i])
 		pbar.Increment()
 	}
 
 	pbar.FinishPrint("Download finished!")
 }
 
-func PrintObject(v interface{}) {
+func printObject(v interface{}) {
 	res2B, _ := json.Marshal(v)
 	log.Println(string(res2B))
 }

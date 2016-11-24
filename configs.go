@@ -26,7 +26,7 @@ var httpClient *http.Client
 
 var sqlDB *bolt.DB
 
-type DLInfo struct {
+type dlInfo struct {
 	Logged bool   `json:"LOGGED"`
 	Url    string `json:"URL"`
 	UrlLow string `json:"URL_LOW"`
