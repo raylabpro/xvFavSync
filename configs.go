@@ -28,8 +28,8 @@ var sqlDB *bolt.DB
 
 type dlInfo struct {
 	Logged bool   `json:"LOGGED"`
-	Url    string `json:"URL"`
-	UrlLow string `json:"URL_LOW"`
+	URL    string `json:"URL"`
+	URLLow string `json:"URL_LOW"`
 }
 
 const authURL = "http://upload.xvideos.com/account/"

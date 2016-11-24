@@ -75,7 +75,7 @@ func getVideoDirectDLURL(url string) (string, error) {
 		processAuth()
 		return getVideoDirectDLURL(url)
 	}
-	return jsonData.Url, nil
+	return jsonData.URL, nil
 }
 
 func downloadFromURL(url string, fileName string) error {
