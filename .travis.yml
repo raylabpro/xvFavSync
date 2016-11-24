@@ -1,0 +1,99 @@
+language: go
+
+#dist: trusty
+#sudo: false
+
+os:
+  - linux
+
+services:
+
+gobuild_args: '-s -w --ldflags "-X \"main.version=$TRAVIS_TAG\" -X \"main.build=$(git rev-parse --short HEAD)\" -X \"main.buildDate=$(date --rfc-3339=seconds)\""'
+
+addons:
+  apt:
+    packages:
+    - pandoc 
+  apt_packages:
+    - pandoc
+
+go:
+  - 1.6.3
+  - 1.7.3
+  - tip
+
+matrix:
+  allow_failures:
+    - go: tip
+
+#branches:
+#  only:
+#  - master
+#  - develop
+#  - /^v*.*.*$/
+
+env:
+  global:
+    - GO_BUILD_LDFLAGS="-s -w -X \"main.version=$TRAVIS_TAG\" -X \"main.build=$(git rev-parse --short HEAD)\" -X \"main.buildDate=$(date --rfc-3339=seconds)\""
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+
+before_install:
+
+install:
+ - go get -t ./...
+ - go get -u github.com/stretchr/testify/assert
+ - go get -u github.com/golang/lint/golint
+ - go get -u golang.org/x/tools/cmd/goimports
+ - go get -u golang.org/x/tools/cmd/cover
+ - go get -u github.com/mattn/goveralls
+
+before_script:
+
+script:
+ - go vet ./...
+ - diff <(goimports -d .) <(printf "")
+ - diff <(golint ./...) <(printf "")
+ - go test -v -covermode=count -coverprofile=coverage.out
+ - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+
+after_script:
+
+after_success:
+
+after_failure:
+
+before_deploy:
+  - pandoc README.md -f markdown -t html -s -o README.html
+  - cp config.smpl.yml config.yml
+  - mkdir release
+  - export GOARCH=386 &&   export GOOS=linux && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync && chmod +x xvfavsync && tar -zcvf release/xvfavsync-linux-i386_g$TRAVIS_GO_VERSION.tar.gz xvfavsync README.html config.yml
+  - export GOARCH=amd64 && export GOOS=linux && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync && chmod +x xvfavsync && tar -zcvf release/xvfavsync-linux-amd64_g$TRAVIS_GO_VERSION.tar.gz xvfavsync README.html config.yml
+  - export GOARCH=arm &&   export GOOS=linux && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync && chmod +x xvfavsync && tar -zcvf release/xvfavsync-linux-arm_g$TRAVIS_GO_VERSION.tar.gz xvfavsync README.html config.yml
+  - export GOARCH=arm64 && export GOOS=linux && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync && chmod +x xvfavsync && tar -zcvf release/xvfavsync-linux-arm64_g$TRAVIS_GO_VERSION.tar.gz xvfavsync README.html config.yml
+  - export GOARCH=amd64 && export GOOS=darwin && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync && chmod +x xvfavsync && tar -zcvf release/xvfavsync-darwin-amd64_g$TRAVIS_GO_VERSION.zip xvfavsync README.html config.yml
+  - export GOARCH=amd64 && export GOOS=windows && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync.exe && zip release/xvfavsync-windows-amd64_g$TRAVIS_GO_VERSION.zip xvfavsync.exe README.html config.yml
+  - export GOARCH=386 &&   export GOOS=windows && go env && go build --ldflags "$GO_BUILD_LDFLAGS" -o xvfavsync.exe && zip release/xvfavsync-windows-386_g$TRAVIS_GO_VERSION.zip xvfavsync.exe README.html config.yml
+  
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    api_key: $GITHUB_OAUTH_TOKEN
+    file:
+      - "release/xvfavsync-linux-i386_g$TRAVIS_GO_VERSION.tar.gz"
+      - "release/xvfavsync-linux-amd64_g$TRAVIS_GO_VERSION.tar.gz"
+      - "release/xvfavsync-linux-arm_g$TRAVIS_GO_VERSION.tar.gz"
+      - "release/xvfavsync-linux-arm64_g$TRAVIS_GO_VERSION.tar.gz"
+      - "release/xvfavsync-darwin-amd64_g$TRAVIS_GO_VERSION.zip"
+      - "release/xvfavsync-windows-amd64_g$TRAVIS_GO_VERSION.zip"
+      - "release/xvfavsync-windows-386_g$TRAVIS_GO_VERSION.zip"
+    on:
+      repo: RiftBit/xvFavSync
+      tags: true
+      #go: 1.7.3
+      all_branches: true
+
+after_deploy:

@@ -1,0 +1,10 @@
+*.iml
+.idea
+out
+build
+config.yml
+*.tar.gz
+*.exe
+vendor/*
+.gradle
+test_*.db*
