@@ -40,7 +40,8 @@ func initConfigs() {
 	err = yaml.Unmarshal(data, &Configs)
 	checkErrAndExit(err)
 
-	cookieJar, _ := cookiejar.New(nil)
+	cookieJar, err := cookiejar.New(nil)
+	checkErrAndExit(err)
 	httpClient = &http.Client{
 		Jar: cookieJar,
 	}
@@ -48,7 +49,7 @@ func initConfigs() {
 
 func checkErrAndExit(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		time.Sleep(10 * time.Millisecond)
 		abstractExitFunction(1)
 	}
