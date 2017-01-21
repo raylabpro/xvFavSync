@@ -7,7 +7,7 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var bucketName []byte = []byte("videos")
+var bucketName = []byte("videos")
 
 func addToCache(videoID string) {
 	Cache.Add(videoID, 1, cache.NoExpiration)
