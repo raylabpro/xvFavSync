@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"testing"
@@ -51,7 +52,7 @@ func TestInitConfigs(t *testing.T) {
 	initConfigs()
 }
 func TestCheckErrAndExit(t *testing.T) {
-	err := error("error")
+	err := errors.New("error")
 	checkErrAndExit(err)
 	if okForTest == true {
 		t.Error("")
