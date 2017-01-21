@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strconv"
 
+	"net/http"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -27,8 +29,8 @@ func processAuth() {
 	defer resp.Body.Close()
 }
 
-func processVideoDownloadByURL(url string) {
-	downloadNodeInfoURL, videoID, _ := getVideoURLwithNodeInfo(url)
+func processVideoDownloadByURL(videoID string) {
+	downloadNodeInfoURL := fmt.Sprintf("http://www.xvideos.com/video-download/%s/", videoID)
 	if isVideoExist(videoID) == false {
 		urlFinal, _ := getVideoDirectDLURL(downloadNodeInfoURL)
 		err := downloadFromURL(urlFinal, videoID)
@@ -38,26 +40,11 @@ func processVideoDownloadByURL(url string) {
 	}
 }
 
-func getVideoURLwithNodeInfo(url string) (string, string, error) {
-	r := regexp.MustCompile(`video([0-9]+)`)
-	parseRes := r.FindAllStringSubmatch(url, -1)
-	if len(parseRes) <= 0 {
-		return "", "", errors.New("Video ID Not found. Wrong URL")
-	}
-	if len(parseRes[0]) <= 0 {
-		return "", "", errors.New("Video ID Not found. Wrong URL")
-	}
-	videoID := parseRes[0][1]
-	if videoID == "" {
-		return "", "", errors.New("Cant get Video ID from url")
-	}
-	resultURL := fmt.Sprintf("http://www.xvideos.com/video-download/%s/", videoID)
-	return resultURL, videoID, nil
-}
-
 func getVideoDirectDLURL(url string) (string, error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", Configs.UserAgent)
 
-	response, err := httpClient.Get(url)
+	response, err := httpClient.Do(req)
 	if err != nil {
 		log.Println("Error while getting direct video url", url, "-", err)
 		return "", err
@@ -70,6 +57,7 @@ func getVideoDirectDLURL(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if jsonData.Logged != true {
 		processAuth()
 		return getVideoDirectDLURL(url)
@@ -77,11 +65,11 @@ func getVideoDirectDLURL(url string) (string, error) {
 	return jsonData.URL, nil
 }
 
-func downloadFromURL(url string, fileName string) error {
-	filePath := Configs.DownloadPath + fileName + ".mp4"
-	//log.Println("Downloading", "to", filePath)
-
-	response, err := httpClient.Get(url)
+func downloadFromURL(url string, videoID string) error {
+	filePath := fmt.Sprintf("%v%v.mp4", Configs.DownloadPath, videoID)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", Configs.UserAgent)
+	response, err := httpClient.Do(req)
 	if err != nil {
 		log.Println("Error while downloading", url, "-", err)
 		return err
@@ -106,18 +94,17 @@ func downloadFromURL(url string, fileName string) error {
 
 func getVideoListFromPlayList() ([]string, error) {
 	PlayListURL := Configs.PlaylistLink
-	links := []string{}
+	videoIDs := []string{}
 
 	//log.Println("Processing main playlist page", PlayListURL)
 	videos, err := processLinksFromPage(PlayListURL)
 	if err != nil {
 		log.Fatalln(err)
-		return links, err
+		return videoIDs, err
 	}
 	for _, x := range videos {
-		links = append(links, x)
+		videoIDs = append(videoIDs, x)
 	}
-	//log.Println("Processed main playlist page", PlayListURL, "already links in db", len(links))
 
 	counter := 0
 	for {
@@ -128,37 +115,42 @@ func getVideoListFromPlayList() ([]string, error) {
 			break
 		}
 		for _, x := range videos {
-			links = append(links, x)
+			videoIDs = append(videoIDs, x)
 		}
 		//log.Println("Processed additional", counter, "playlist page", PlayListURL + "/" + strconv.Itoa(counter), "already links in db", len(links))
 	}
-	return links, nil
+	return videoIDs, nil
 }
 
 func processLinksFromPage(url string) ([]string, error) {
-	links := []string{}
-	response, err := httpClient.Get(url)
+	videoIDs := []string{}
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", Configs.UserAgent)
+
+	response, err := httpClient.Do(req)
 	if err != nil {
-		return links, errors.New("Error while getting " + url + " - " + err.Error())
+		return videoIDs, errors.New("Error while getting " + url + " - " + err.Error())
 	}
 	if response.StatusCode != 200 {
-		return links, errors.New("Error while getting " + url + " code not 200")
+		return videoIDs, errors.New("Error while getting " + url + " code not 200 but " + string(response.StatusCode))
 	}
 	doc, err := goquery.NewDocumentFromResponse(response)
 	if err != nil {
 		log.Println(err)
-		return links, err
+		return videoIDs, err
 	}
 
-	videoTable := doc.Find(".thumb-inside")
+	videoTable := doc.Find("div.mozaique>div")
 	if videoTable.Length() <= 0 {
-		return links, errors.New("No elements on page")
+		return videoIDs, errors.New("No elements on page")
 	}
+	r := regexp.MustCompile(`video_([0-9]+)`)
+
 	videoTable.Each(func(i int, s *goquery.Selection) {
-		elementURL := s.Text()
-		r := regexp.MustCompile(`\/video([0-9]+)\/`)
-		parseRes := r.FindAllStringSubmatch(elementURL, -1)
-		links = append(links, parseRes[0][0])
+		vId, _ := s.Attr("id")
+		parseRes := r.FindAllStringSubmatch(vId, -1)
+		videoIDs = append(videoIDs, parseRes[0][1])
 	})
-	return links, nil
+	return videoIDs, nil
 }

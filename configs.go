@@ -15,6 +15,7 @@ type conf struct {
 	Password     string `yaml:"password"`
 	PlaylistLink string `yaml:"playlist_link"`
 	DownloadPath string `yaml:"download_path"`
+	UserAgent    string `yaml:"user_agent"`
 }
 
 //Configs ...

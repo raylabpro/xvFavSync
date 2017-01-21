@@ -25,12 +25,13 @@ func abstractExitFunction(exit int) {
 	applicationExitFunction(exit)
 }
 
-func initConfigs() {
-
+func init() {
 	log.Printf("Version:    [%s]\nBuild:      [%s]\nBuild Date: [%s]\n", version, build, buildDate)
 	flag.StringVar(&configPath, "config", "./config.yml", "Path to config.yml")
 	flag.Parse()
+}
 
+func initConfigs() {
 	Cache = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 	data, err := ioutil.ReadFile(configPath)
@@ -75,9 +76,9 @@ func main() {
 	processAuth()
 	log.Println("Starting playlist getter")
 	videoList, err := getVideoListFromPlayList()
-
 	checkErrAndExit(err)
 	log.Println("Processing playlist finished")
+	log.Println(videoList)
 
 	// create bar
 	pbar := pb.New(len(videoList))

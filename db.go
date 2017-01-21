@@ -7,7 +7,7 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-const bucketName = "videos"
+var bucketName []byte = []byte("videos")
 
 func addToCache(videoID string) {
 	Cache.Add(videoID, 1, cache.NoExpiration)
@@ -21,7 +21,7 @@ func initDBConnection() {
 
 func initDB() {
 	sqlDB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
+		_, err := tx.CreateBucketIfNotExists(bucketName)
 		checkErrAndExit(err)
 		return nil
 	})
@@ -29,7 +29,7 @@ func initDB() {
 
 func addToDB(videoID string) {
 	err := sqlDB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketName))
+		b := tx.Bucket(bucketName)
 		return b.Put([]byte(videoID), []byte("1"))
 	})
 	checkErrAndExit(err)
@@ -46,7 +46,7 @@ func isVideoExist(videoID string) bool {
 func isVideoExistInDB(videoID string) bool {
 	isExists := true
 	sqlDB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketName))
+		b := tx.Bucket(bucketName)
 		v := b.Get([]byte(videoID))
 		if v == nil {
 			isExists = false
@@ -63,7 +63,7 @@ func addToReadyList(videoID string) {
 
 func updateCacheDataFromDB() {
 	sqlDB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketName))
+		b := tx.Bucket(bucketName)
 		b.ForEach(func(k, v []byte) error {
 			addToCache(string(k))
 			return nil
