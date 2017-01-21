@@ -87,7 +87,7 @@ deploy:
       - "release/xvfavsync-windows-amd64_g$TRAVIS_GO_VERSION.zip"
       - "release/xvfavsync-windows-386_g$TRAVIS_GO_VERSION.zip"
     on:
-      repo: RiftBit/xvFavSync
+      repo: riftbit/xvFavSync
       tags: true
       #go: 1.7.3
       all_branches: true
