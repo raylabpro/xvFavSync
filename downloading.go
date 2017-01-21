@@ -148,8 +148,8 @@ func processLinksFromPage(url string) ([]string, error) {
 	r := regexp.MustCompile(`video_([0-9]+)`)
 
 	videoTable.Each(func(i int, s *goquery.Selection) {
-		vId, _ := s.Attr("id")
-		parseRes := r.FindAllStringSubmatch(vId, -1)
+		vID, _ := s.Attr("id")
+		parseRes := r.FindAllStringSubmatch(vID, -1)
 		videoIDs = append(videoIDs, parseRes[0][1])
 	})
 	return videoIDs, nil
