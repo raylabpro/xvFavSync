@@ -8,7 +8,7 @@ xvideos favorite list downloader
 [![Coverage Status](https://coveralls.io/repos/github/riftbit/xvFavSync/badge.svg?branch=master)](https://coveralls.io/github/riftbit/xvFavSync?branch=master)
 [![Build Status](https://travis-ci.org/riftbit/xvFavSync.svg?branch=master)](https://travis-ci.org/riftbit/xvFavSync)
 [![Go Report Card](https://goreportcard.com/badge/github.com/riftbit/xvFavSync)](https://goreportcard.com/report/github.com/riftbit/xvFavSync)
-[![Release](https://img.shields.io/badge/release-v1.0.0-blue.svg?style=flat)](https://github.com/riftbit/xvFavSync/releases)
+[![Release](https://img.shields.io/badge/release-v1.0.2-blue.svg?style=flat)](https://github.com/riftbit/xvFavSync/releases)
 
 ## Usage
 ### Linux
